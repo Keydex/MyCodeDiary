@@ -11,7 +11,7 @@ var Tasks = require('./models/task');
 var app = express();
 
 // Use environment defined port or 3000
-var port = process.env.PORT || 3000;
+var port = 4000;
 
 // Connect to a MongoDB
 mongoose.connect(secrets.mongo_connection, { useMongoClient: true});
