@@ -57,12 +57,12 @@ app.post('/api/code', function(req, res) {
     return res.status(201).json({message:"Success", data:[]});
   })
   //Wait we can't have two res returns here. What happens if we can't update user
-  currUser.save((err, savedUser) => {
-    if(err){
-      return res.status(500).json({message:"Server has encountered an error updating User", data:[]});
-    }
-    return res.status(201).json({message:"Success", data:[]});
-  })
+  // currUser.save((err, savedUser) => {
+  //   if(err){
+  //     return res.status(500).json({message:"Server has encountered an error updating User", data:[]});
+  //   }
+  //   return res.status(201).json({message:"Success", data:[]});
+  // })
 });
 
 // Use routes as a module (see index.js)
