@@ -1,3 +1,11 @@
+Manual text for installation steps --
+1. Do git pull(if already cloned) or git clone to get the updated repository 
+2. RUN npm install to get the node modules folder
+3. RUN npm start 
+4. Scan the barcode in the expo app on iphone or android phone
+
+
+Auto generated text -- 
 This project was bootstrapped with [Create React Native App](https://github.com/react-community/create-react-native-app).
 
 Below you'll find information about performing common tasks. The most recent version of this guide is available [here](https://github.com/react-community/create-react-native-app/blob/master/react-native-scripts/template/README.md).
