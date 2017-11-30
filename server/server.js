@@ -51,6 +51,7 @@ app.post('/api/code', function(req, res) {
   //codeEntries is underfined here, need to fix
   //currUser.codeEntries.push(newCode.codeID);
   newCode.save((err, savedCode) => {
+    console.log("Test");
     if(err){
       return res.status(500).json({message:"Server has encountered an error saving Code Snippet", data:[]});
     }
