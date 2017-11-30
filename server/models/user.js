@@ -8,7 +8,7 @@ var userSchema = new mongoose.Schema({
     email: String,
     dateCreated: Date,
     userID: Number,
-    codeEntry: [Number]
+    codeEntry: [String]
 });
 console.log('Loaded User Schema');
 // Export the Mongoose model
