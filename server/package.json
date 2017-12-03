@@ -1,10 +1,9 @@
 {
-  "name": "mp3_starter_17",
+  "name": "codesnippet",
   "version": "1.0.0",
-  "description": "MP3 Starter for CS498RK Fall 2017",
+  "description": "Code Snippet Final Project",
   "authors": [
-    "James Lee <jwlee11@illinois.edu>",
-    "Sujay Khandekar <khandek2@illinois.edu>"
+    "Anthony Pham <anpham2@illinois.edu>"
   ],
   "scripts": {
     "start": "nodemon --exec node server.js"
@@ -26,6 +25,9 @@
     "nodemon": "^1.11.0"
   },
   "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-concat": "^2.6.1",
+    "gulp-watch": "^4.3.11",
     "highlightjs": "^9.10.0"
   }
 }

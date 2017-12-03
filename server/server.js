@@ -37,33 +37,32 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.post('/api/code', function(req, res) {
-//Add code snippet into server
   if(req.body.userID === undefined || req.body.code === undefined){
     console.log(req.body.userID);
     console.log(req.body.code);
     return res.status(500).json({message:"Invalid POST Request", data:[]});
   }
+  let objectID = "";
   let newCode = new Code();
   let currUser = new User();
-  newCode.codeID = 0; //TODO: Generate new ID
+  // newCode.codeID = 0; //TODO: Generate new ID
   newCode.dateCreated = new Date();
   newCode.codeEntry = req.body.code;
-  //codeEntries is underfined here, need to fix
-  //currUser.codeEntries.push(newCode.codeID);
-  newCode.save((err, savedCode) => {
-    if(err){
-      return res.status(500).json({message:"Server has encountered an error saving Code Snippet", data:[]});
+  console.log("call collection");
+  Code.collection.insert(newCode, function(err){
+   if (err) return;
+   // Object inserted successfully.
+   objectID = newCode._id; // this will return the id of object inserted
+  });
+  User.findByIdAndUpdate(req.body.userID,
+    {$push: {'codeEntry': objectID}},
+    {safe: true, upsert: true},
+      function(err){
+      if(err) return;
     }
-    return res.status(201).json({message:"Success", data:[]});
-  })
-  //Wait we can't have two res returns here. What happens if we can't update user
-  currUser.save((err, savedUser) => {
-    if(err){
-      return res.status(500).json({message:"Server has encountered an error updating User", data:[]});
-    }
-    return res.status(201).json({message:"Success", data:[]});
-  })
-});
+  )
+    return res.status(201).json({message:"Code Snippet Saved", data:[]});
+  });
 
 // Use routes as a module (see index.js)
 require('./routes')(app, router);
