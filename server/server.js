@@ -146,8 +146,8 @@ app.post('/api/add_code_entry', function(req, res) {
             res.status(500);
             res.send(err);
         } else {
-        res.status(404);
-        res.json({message:"Code entry not found"})
+        res.status(200);
+        res.json({message:"Code Entry Deleted"})
         }
       })
   }})});
