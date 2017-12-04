@@ -7,11 +7,18 @@ var express = require('express'),
 var User = require('./models/user');
 var Code = require('./models/code');
 
-var CURR_USER_ID =  "5a1f661fca9ce01239c26156";
+var FIREBASE_USER_ID = "12345";
+var CURR_USER_ID =  "5a259cac41f8540416f03cbc";
 
 //to do later
-function getFirebaseId(){
-  return 1234;
+function getMlabUserId(firebase_id){
+  User.findOne({'firebaseID':firebase_id}, function(err,user){
+    if (err){
+      res.status(404);
+      return res.json({message:"Could not find user with firebaseID on mlab"});
+    }
+    return user;
+  })
 }
 
 
@@ -48,113 +55,242 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 
 
-//get all code entries
-app.post('/api/view_entries', function(req,res){
-  if(currUserId === undefined){
-    return res.status(500).json({message:"Invalid POST Request", data:[]});
-  }
 
-  User.findById(currUserId, (err,user)=>{
+
+//Add new user to DB
+//Requires firebaseID in body of request
+app.post('/api/user',function(req,res){
+  let newUser = new User();
+  newUser.name = req.body.name;
+  newUser.email = req.body.email;
+  newUser.dateCreated = Date.now();
+  newUser.firebaseID = req.body.firebaseID;
+
+  newUser.save((err,user)=>{
     if(err){
       res.status(500);
       res.send(err);
     }
+    res.status(201);
+    res.json({
+      message: 'Successfully added user',
+      data: user
+   });
+ });
+})
 
-    if(user!=null){
-        res.send(200);
-        res.json(user)
+//Get code entries for a user.
+//Pass {"firebaseID": user's id} in json body of post request.
+app.post('/api/entries',function(req,res){
+  User.findOne({'firebaseID':req.body.firebaseID}, function(err,user){
+    if (err){
+      res.status(404);
+      return res.json({message:"Could not find user with firebaseID on mlab"});
+    }
+    if (user==null){
+      return res.json({message:"Could not find user with firebaseID on mlab"});
     }
 
+    Code.find({'ownerID':user._id}, function(err,codes){
+
+      if(err){
+        res.status(500);
+        return res.json({message:"Error finding entires for user"});
+      }
+      return res.json(codes);
+    })
   })
 })
 
 
+//Add a new code entry.
+//Make sure you include "firebaseID: user's ID" in the body of the post request.
+app.post('/api/code', function(req, res) {
+  User.findOne({'firebaseID':req.body.firebaseID}, function(err,user){
+    if (err){
+      res.status(404);
+      return res.json({message:"Could not find user with firebaseID on mlab"});
+    }
+    if (user==null){
+      return res.json({message:"Could not find user with firebaseID on mlab"});
+    }
 
-//new code entry
-app.post('/api/add_code_entry', function(req, res) {
-  var currUserId = CURR_USER_ID;
+    //do search using params
+    let newCode = new Code();
+    newCode.dateCreated = new Date();
+    newCode.codeEntry = req.body.code;
+    newCode.comment = req.body.comment;
+    newCode.metaTags = req.body.tags;
+    newCode.language = req.body.language;
+    newCode.ownerID = user._id;
+    newCode.firebaseOwnerID = req.body.firebaseID;
 
-  if(currUserId === undefined || req.body.code === undefined){
-    console.log(req.body.userID);
-    console.log(req.body.code);
-    return res.status(500).json({message:"Invalid POST Request", data:[]});
-  }
-
-
-  let objectID = "";
-  let newCode = new Code();
-  // let currUser = new User();
-
-  // newCode.codeID = 0; //TODO: Generate new ID
-  newCode.dateCreated = new Date();
-  newCode.codeEntry = req.body.code;
-  newCode.comment = req.body.comment;
-  newCode.metaTags = req.body.tags;
-  newCode.language = req.body.language;
+    newCode.save(function(err,code){
+     if (err) return res.json(err);
+     return res.status(201).json(code);
+    })
+  })
+});
 
 
-  console.log("call collection");
-  newCode.save(function(err,code){
-   if (err) return;
-   // Object inserted successfully.
-   // console.log(code);
-   objectID = code._id; // this will return the id of object inserted
+//Update existing code entry.
+//Note than empty fields WILL NOT be changed.
+app.put('/api/code/:id',function(req,res){
+  Code.findById(req.params.id, (err,code)=>{
 
-   User.findByIdAndUpdate(currUserId,
-     {$push: {'codeEntry': objectID}},
-     {safe: true, upsert: true},
-       function(err){
-       if(err) return;
-       // console.log(objectID);
-     }
-   )
-   return res.status(201).json({message:"Code Snippet Saved", newCodeID:objectID});
-   console.log(objectID);
-   });
-  });
+    if(err){
+      res.status(404);
+      res.send();
+    }
 
-  // var codeIDRoute = router.route('/api/code/:id');
+    if(req.body.code!=null){
+      code.codeEntry = req.body.code;
+    }
 
-  app.delete('/api/code/:id',function(req,res){
-    console.log("This isnt printing");
-    Code.findById(req.params.id, (err,code)=>{
+    if(req.body.comment!=null){
+      code.comment = req.body.comment;
+    }
+
+    if(req.body.tags!=null){
+      code.metaTags = req.body.tags;
+    }
+
+    if(req.body.language!=null){
+      code.language = req.body.language;
+    }
+
+
+    code.save(err=>{
       if(err){
         res.status(500);
         res.send(err);
       }
-
-      console.log(code);
-
-      if(code!=null){
-        User.findById(code.ownerID, (err,user)=>{
-          if(err){
-            res.status(500);
-            res.send(err);
-          }
-
-          if(user!=null){
-            user.codeEntry.pull(req.params.id);
-            console.log("code entry removed from user");
-          }})
-
-        console.log("hello");
-        Code.remove({
-          _id:req.params.id
-        }
-        , (err)=>{
-          if(err){
-            res.status(500);
-            res.send(err);
-        } else {
-        res.status(404);
-        res.json({message:"Code entry not found"})
-        }
-      })
-  }})});
+      res.status(200);
+      res.json({message:"Code updated successfully,"});
+    })
+  })
+})
 
 
+app.delete('/api/code/:id',function(req,res){
+  Code.findByIdAndRemove(req.params.id, (err, code)=>{
+    if (err){
+      res.status(500);
+      res.send(err);
+    }
+
+    res.status(200);
+    res.json({message: "Code entry successfully removed."});
+  })
+})
+
+// //Add new code entry
+// app.post('/api/add_code_entry', function(req, res) {
+//   var currUserId = CURR_USER_ID;
+//
+//   if(currUserId === undefined || req.body.code === undefined){
+//     console.log(req.body.userID);
+//     console.log(req.body.code);
+//     return res.status(500).json({message:"Invalid POST Request", data:[]});
+//   }
+//
+//
+//   let objectID = "";
+//   let newCode = new Code();
+//   // let currUser = new User();
+//
+//   // newCode.codeID = 0; //TODO: Generate new ID
+//   newCode.dateCreated = new Date();
+//   newCode.codeEntry = req.body.code;
+//   newCode.comment = req.body.comment;
+//   newCode.metaTags = req.body.tags;
+//   newCode.language = req.body.language;
+//   newCode.ownerID = CURR_USER_ID;
+//
+//
+//   console.log("call collection");
+//   newCode.save(function(err,code){
+//    if (err) return;
+//    objectID = code._id; // this will return the id of object inserted
+//
+//    User.findByIdAndUpdate(currUserId,
+//      {$push: {'codeEntry': objectID}},
+//      {safe: true, upsert: true},
+//        function(err){
+//        if(err) return;
+//        // console.log(objectID);
+//      }
+//    )
+//    return res.status(201).json({message:"Code Snippet Saved", newCodeID:objectID});
+//    console.log(objectID);
+//    });
+//   });
+//
+//
+//   //Delete a code entry given ID
+//   app.delete('/api/code/:id',function(req,res){
+//     Code.findById(req.params.id, (err,code)=>{
+//       if(err){
+//         res.status(500);
+//         res.send(err);
+//       }
+//
+//       console.log(code);
+//
+//       if(code!=null){
+//         User.findById(code.ownerID, (err,user)=>{
+//           if(err){
+//             res.status(500);
+//             res.send(err);
+//           }
+//
+//           if(user!=null){
+//             user.codeEntry.pull({_id:req.params.id});
+//             console.log("code entry removed from user");
+//           } else {
+//             return res.status(404).json({message:"Invalid User"});
+//           }
+//
+//         console.log("hello");
+//         Code.remove({
+//           _id:req.params.id
+//         }
+//         , (err)=>{
+//           if(err){
+//             res.status(500);
+//             res.send(err);
+//           }
+//           //do stuff
+//           res.status(200).json({message:"Code entry removed successfully."});
+//         })
+//       })
+//     } else {
+//       res.status(404);
+//       res.json({message:"Code entry not found"})
+//       }
+//     })});
 
 
+
+
+    // //get all code entries for CURR_USER_ID
+    // app.post('/api/view_entries', function(req,res){
+    //   if(currUserId === undefined){
+    //     return res.status(500).json({message:"Invalid POST Request", data:[]});
+    //   }
+    //
+    //   User.findById(currUserId, (err,user)=>{
+    //     if(err){
+    //       res.status(500);
+    //       res.send(err);
+    //     }
+    //
+    //     if(user!=null){
+    //         res.send(200);
+    //         res.json(user)
+    //     }
+    //   })
+    // })
 
 
 

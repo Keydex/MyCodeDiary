@@ -11,7 +11,8 @@ var codeSchema = new mongoose.Schema({
     language: String,
     metaTags: [String],
     comment:String,
-    ownerID:{type:Schema.Types.ObjectId, ref:"User"}
+    ownerID:{type:Schema.Types.ObjectId, ref:"User"},
+    firebaseOwnerID:String
 });
 console.log('Loaded Code Schema');
 // Export the Mongoose model

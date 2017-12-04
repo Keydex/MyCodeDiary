@@ -9,7 +9,7 @@ var userSchema = new mongoose.Schema({
     name: String,
     email: String,
     dateCreated: Date,
-    userID: String,
+    firebaseID: String,
     codeEntry: [
       {
         type:Schema.Types.ObjectId, ref:"Code"
