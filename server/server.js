@@ -80,6 +80,7 @@ app.post('/api/user',function(req,res){
 })
 
 //Get code entries for a user.
+//Note: this is essentially what you do when the user logs in.
 //Pass {"firebaseID": user's id} in json body of post request.
 app.post('/api/entries',function(req,res){
   User.findOne({'firebaseID':req.body.firebaseID}, function(err,user){
