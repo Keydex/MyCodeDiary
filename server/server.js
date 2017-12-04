@@ -7,8 +7,8 @@ var express = require('express'),
 var User = require('./models/user');
 var Code = require('./models/code');
 
-var FIREBASE_USER_ID = "12345";
-var CURR_USER_ID =  "5a259cac41f8540416f03cbc";
+// var FIREBASE_USER_ID = "12345";
+// var CURR_USER_ID =  "5a259cac41f8540416f03cbc";
 
 //to do later
 function getMlabUserId(firebase_id){
