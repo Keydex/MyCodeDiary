@@ -7,11 +7,21 @@ var express = require('express'),
 var User = require('./models/user');
 var Code = require('./models/code');
 
+var CURR_USER_ID =  "5a1f661fca9ce01239c26156";
+
+//to do later
+function getFirebaseId(){
+  return 1234;
+}
+
+
+
 // Create our Express application
 var app = express();
 
 // Use environment defined port or 4000
 var port = 4000;
+
 
 // Connect to a MongoDB
 mongoose.connect(secrets.mongo_connection, { useMongoClient: true});
@@ -36,33 +46,117 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 app.use(bodyParser.json());
-app.post('/api/code', function(req, res) {
-  if(req.body.userID === undefined || req.body.code === undefined){
+
+
+//get all code entries
+app.post('/api/view_entries', function(req,res){
+  if(currUserId === undefined){
+    return res.status(500).json({message:"Invalid POST Request", data:[]});
+  }
+
+  User.findById(currUserId, (err,user)=>{
+    if(err){
+      res.status(500);
+      res.send(err);
+    }
+
+    if(user!=null){
+        res.send(200);
+        res.json(user)
+    }
+
+  })
+})
+
+
+
+//new code entry
+app.post('/api/add_code_entry', function(req, res) {
+  var currUserId = CURR_USER_ID;
+
+  if(currUserId === undefined || req.body.code === undefined){
     console.log(req.body.userID);
     console.log(req.body.code);
     return res.status(500).json({message:"Invalid POST Request", data:[]});
   }
+
+
   let objectID = "";
   let newCode = new Code();
-  let currUser = new User();
+  // let currUser = new User();
+
   // newCode.codeID = 0; //TODO: Generate new ID
   newCode.dateCreated = new Date();
   newCode.codeEntry = req.body.code;
+  newCode.comment = req.body.comment;
+  newCode.metaTags = req.body.tags;
+  newCode.language = req.body.language;
+
+
   console.log("call collection");
-  Code.collection.insert(newCode, function(err){
+  newCode.save(function(err,code){
    if (err) return;
    // Object inserted successfully.
-   objectID = newCode._id; // this will return the id of object inserted
+   // console.log(code);
+   objectID = code._id; // this will return the id of object inserted
+
+   User.findByIdAndUpdate(currUserId,
+     {$push: {'codeEntry': objectID}},
+     {safe: true, upsert: true},
+       function(err){
+       if(err) return;
+       // console.log(objectID);
+     }
+   )
+   return res.status(201).json({message:"Code Snippet Saved", newCodeID:objectID});
+   console.log(objectID);
+   });
   });
-  User.findByIdAndUpdate(req.body.userID,
-    {$push: {'codeEntry': objectID}},
-    {safe: true, upsert: true},
-      function(err){
-      if(err) return;
-    }
-  )
-    return res.status(201).json({message:"Code Snippet Saved", data:[]});
-  });
+
+  // var codeIDRoute = router.route('/api/code/:id');
+
+  app.delete('/api/code/:id',function(req,res){
+    console.log("This isnt printing");
+    Code.findById(req.params.id, (err,code)=>{
+      if(err){
+        res.status(500);
+        res.send(err);
+      }
+
+      console.log(code);
+
+      if(code!=null){
+        User.findById(code.ownerID, (err,user)=>{
+          if(err){
+            res.status(500);
+            res.send(err);
+          }
+
+          if(user!=null){
+            user.codeEntry.pull(req.params.id);
+            console.log("code entry removed from user");
+          }})
+
+        console.log("hello");
+        Code.remove({
+          _id:req.params.id
+        }
+        , (err)=>{
+          if(err){
+            res.status(500);
+            res.send(err);
+        } else {
+        res.status(404);
+        res.json({message:"Code entry not found"})
+        }
+      })
+  }})});
+
+
+
+
+
+
 
 // Use routes as a module (see index.js)
 require('./routes')(app, router);

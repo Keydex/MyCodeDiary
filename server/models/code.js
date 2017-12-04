@@ -1,7 +1,8 @@
 //Insert Code Entry Schema
 // Load required packages
 var mongoose = require('mongoose');
-
+var Task = require('./user');
+let Schema = mongoose.Schema;
 // Define our user schema
 var codeSchema = new mongoose.Schema({
     codeID: Number,
@@ -9,6 +10,8 @@ var codeSchema = new mongoose.Schema({
     codeEntry: String,
     language: String,
     metaTags: [String],
+    comment:String,
+    ownerID:{type:Schema.Types.ObjectId, ref:"User"}
 });
 console.log('Loaded Code Schema');
 // Export the Mongoose model
