@@ -5,6 +5,7 @@ var Task = require('./user');
 let Schema = mongoose.Schema;
 // Define our user schema
 var codeSchema = new mongoose.Schema({
+    title: String,
     codeID: Number,
     dateCreated: Date,
     codeEntry: String,

@@ -128,6 +128,7 @@ app.post('/api/code', function(req, res) {
     newCode.comment = req.body.comment;
     newCode.metaTags = req.body.tags;
     newCode.language = req.body.language;
+    newCode.title = req.body.title;
     newCode.ownerID = user._id;
     newCode.firebaseOwnerID = req.body.firebaseID;
 
