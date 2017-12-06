@@ -165,6 +165,9 @@ app.put('/api/code/:id',function(req,res){
     if(req.body.language!=null){
       code.language = req.body.language;
     }
+    if(req.body.title!=null){
+      code.title = req.body.title;
+    }
 
 
     code.save(err=>{
