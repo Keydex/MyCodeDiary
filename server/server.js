@@ -97,7 +97,7 @@ app.post('/api/entries',function(req,res){
       return res.json({message:"Could not find user with firebaseID on mlab"});
     }
 
-    Code.find({'ownerID':user._id}, function(err,codes){
+    Code.find({'ownerID':user._id},null,{sort:'-dateCreated'}, function(err,codes){
 
       if(err){
         res.status(500);
@@ -168,6 +168,8 @@ app.put('/api/code/:id',function(req,res){
     if(req.body.title!=null){
       code.title = req.body.title;
     }
+
+    code.dateCreated = Date.now();
 
 
     code.save(err=>{
