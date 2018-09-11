@@ -1,4 +1,5 @@
 # Code Diary Docs
+This is the backend server for the Code Diary Project. This handles authentication using Firebase and supports SSO with social media sites and allows a user to post, edit, and receive code snippets from the react native front end which can be found here. https://github.com/Keydex/Web_App/tree/master/src
 
 ## Code Schema
 
